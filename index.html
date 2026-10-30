@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ชาร์จรถ Atto 3 — V9</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#0B1020; --panel:#141D32; --panel-2:#1C2944; --line:#2B3B5C;
+    --text:#F3F6FF; --muted:#9BAAC8; --normal:#67E8F9; --rebal:#FBBF63;
+    --ok:#6EE7B7; --accent:var(--normal); --r:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:radial-gradient(ellipse at top,#172746 0%,var(--ground) 58%);color:var(--text);
+    font-family:'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif;
+    font-variant-numeric:tabular-nums;display:flex;justify-content:center}
+  .app{width:100%;max-width:480px;height:100dvh;display:flex;flex-direction:column;
+    padding:calc(env(safe-area-inset-top) + 8px) 16px calc(env(safe-area-inset-bottom) + 8px);
+    gap:2px}
+  .app:before{content:'ATTO 3  /  CHARGE PLANNER';display:block;flex:none;font-size:11px;
+    letter-spacing:2px;font-weight:700;color:var(--muted);padding:4px 2px 2px}
+  .tabs{background:rgba(20,29,50,.72);border:1px solid rgba(155,170,200,.12);
+    border-radius:20px;padding:5px;gap:5px;margin:5px 0 8px;backdrop-filter:blur(14px)}
+  .tab{border-radius:14px;padding:13px 0;background:transparent;font-size:15px}
+  .tab[aria-selected="true"]{background:linear-gradient(135deg,#263957,#1b2944);color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(103,232,249,.16)}
+
+  .tabs{display:flex;gap:6px;padding:10px 0 8px;flex:none}
+  .tab{flex:1;padding:11px 0;border:none;border-radius:var(--r);background:var(--panel);
+    color:var(--muted);font:600 17px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer;transition:.15s}
+  .tab[aria-selected="true"]{background:var(--panel-2);color:var(--text)}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .view{flex:1;min-height:0;display:none;flex-direction:column;gap:10px;overflow-y:auto;padding:2px 1px 16px;
+    scrollbar-width:thin;scrollbar-color:#334765 transparent}
+  .view.on{display:flex}
+
+  .ask{flex:none;background:linear-gradient(120deg,rgba(30,63,68,.9),rgba(28,41,68,.95));
+    border:1px solid rgba(110,231,183,.22);border-left:4px solid var(--ok);
+    border-radius:14px;padding:13px;cursor:pointer}
+  .ask[hidden]{display:none}
+  .ask .q{font-size:15px;line-height:1.5}
+  .ask .q b{color:var(--ok)}
+  .ask .body{display:none;margin-top:10px}
+  .ask.open .body{display:block}
+  .chev{float:right;color:var(--muted);font-size:13px}
+  .askrow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .mini{width:50px;height:50px;flex:none;border:none;border-radius:10px;background:var(--panel);
+    color:var(--text);font:500 26px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer}
+  .mini:active{background:var(--ok);color:#10161F}
+  #ask-val{flex:1;text-align:center;font-size:38px;font-weight:700;color:var(--ok);line-height:1}
+  .askbtns{display:flex;gap:8px}
+  .askbtns button{flex:1;padding:12px;border:none;border-radius:10px;
+    font:600 16px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer}
+  #ask-save{background:var(--ok);color:#10161F}
+  #ask-skip{background:var(--panel);color:var(--muted)}
+
+  .modes{display:flex;gap:8px;flex:none}
+  .mode{flex:1;padding:13px 8px;border:1px solid var(--line);border-radius:var(--r);background:rgba(20,29,50,.88);
+    color:var(--muted);font:600 16px/1.25 'IBM Plex Sans Thai',sans-serif;cursor:pointer;transition:.18s}
+  .mode small{display:block;font-size:12px;font-weight:400;margin-top:3px;opacity:.85}
+  .mode[aria-pressed="true"]{color:#071521;border-color:transparent;box-shadow:0 5px 18px rgba(0,0,0,.16)}
+  #m-normal[aria-pressed="true"]{background:var(--normal)}
+  #m-rebal[aria-pressed="true"]{background:var(--rebal)}
+
+  .card,.sgroup{background:linear-gradient(145deg,rgba(25,37,62,.98),rgba(17,27,47,.98));
+    border:1px solid rgba(155,170,200,.12);border-radius:var(--r);padding:15px;flex:none;
+    box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .lbl{font-size:14px;color:var(--muted);margin-bottom:6px}
+  .stepper{display:flex;align-items:center;gap:8px}
+  .step{width:58px;height:58px;flex:none;border:1px solid rgba(155,170,200,.12);border-radius:16px;background:var(--panel-2);
+    color:var(--text);font:500 30px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer;transition:background .1s}
+  .step:active{background:var(--accent);color:#10161F}
+  .pctwrap{flex:1;display:flex;align-items:baseline;justify-content:center;gap:2px}
+  #pct-in{width:2.3em;background:transparent;border:none;border-bottom:2px solid var(--line);
+    color:var(--accent);font:700 54px/1 'IBM Plex Sans Thai',sans-serif;text-align:center;
+    letter-spacing:-1px;padding:0 0 2px;font-variant-numeric:tabular-nums}
+  #pct-in:focus{outline:none;border-bottom-color:var(--accent)}
+  .pctwrap i{font-style:normal;font-size:26px;font-weight:500;color:var(--muted)}
+
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  input[type=time],input[type=number]{background:#111B30;border:1px solid var(--line);border-radius:12px;
+    color:var(--text);font:600 26px/1 'IBM Plex Sans Thai',sans-serif;padding:9px 10px;text-align:center;
+    width:138px;font-variant-numeric:tabular-nums}
+  input[type=number]{width:106px;font-size:23px}
+  select#s-current{max-width:100%;width:100%;background:#101A2E;border:1px solid #304261;border-radius:12px;color:var(--text);font:500 15px/1.3 'IBM Plex Sans Thai',sans-serif;padding:12px 10px}
+  select#s-current:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+
+  .go{flex:none;width:100%;padding:18px;border:none;border-radius:16px;background:linear-gradient(110deg,var(--accent),#A5F3FC);
+    color:#071521;font:700 20px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer;
+    box-shadow:0 8px 22px rgba(103,232,249,.13);transition:transform .15s,filter .15s}
+  .go:active{filter:brightness(.9)}
+
+  .out{flex:none;background:linear-gradient(145deg,rgba(25,37,62,.98),rgba(17,27,47,.98));
+    border:1px solid rgba(155,170,200,.15);border-radius:22px;padding:20px 14px;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center}
+  .out .hint{color:var(--muted);font-size:15px;line-height:1.55}
+  .big{font-size:64px;font-weight:700;line-height:1.05;color:var(--accent);letter-spacing:-2px;text-shadow:0 0 30px rgba(103,232,249,.12)}
+  .big-lbl{font-size:15px;color:var(--muted)}
+  .sub{font-size:18px;font-weight:500;line-height:1.5}
+  .sub b{color:var(--text);font-weight:700}
+  .warn{color:var(--rebal);font-size:16px;font-weight:600;line-height:1.5}
+  .src{font-size:12px;color:var(--muted);opacity:.85;line-height:1.5}
+
+  .mark{width:100%;margin-top:8px;padding:14px;border:1px solid var(--ok);border-radius:13px;
+    background:transparent;color:var(--ok);font:600 17px/1.35 'IBM Plex Sans Thai',sans-serif;cursor:pointer}
+  .mark small{display:block;font-size:12px;font-weight:400;opacity:.8;margin-top:3px}
+  .mark[disabled]{background:var(--ok);color:#10161F;border-color:transparent;cursor:default}
+
+  .sgroup h2{font-size:17px;font-weight:700;margin-bottom:14px;letter-spacing:.1px}
+  .sgroup h2{font-size:18px;font-weight:700;margin-bottom:12px}
+  .srow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .srow:last-child{margin-bottom:0}
+  .srow label{font-size:16px;color:var(--muted);flex:1}
+  .pick{display:flex;gap:8px}
+  .pick button{flex:1;padding:13px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2);
+    color:var(--muted);font:600 17px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer}
+  .pick button[aria-pressed="true"]{background:var(--rebal);color:#10161F;border-color:transparent}
+  .tip{background:var(--panel-2);border-left:3px solid var(--rebal);border-radius:0 10px 10px 0;
+    padding:10px 12px;font-size:14px;line-height:1.6;color:var(--muted)}
+  .tip b{color:var(--text)}
+  .fixed{font-size:18px;font-weight:700;color:var(--rebal)}
+  .spec{text-align:center;font-size:13px;color:var(--muted);line-height:1.6;flex:none;padding-bottom:6px}
+
+  details.sgroup summary{list-style:none;cursor:pointer;font-size:18px;font-weight:700;
+    display:flex;justify-content:space-between;align-items:center;gap:8px}
+  details.sgroup summary::-webkit-details-marker{display:none}
+  details.sgroup summary span{font-size:13px;font-weight:400;color:var(--muted)}
+  details.sgroup[open] summary{margin-bottom:12px}
+  .ghost{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);
+    color:var(--text);font:600 15px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer;margin-top:8px}
+  .ghost.danger{color:var(--rebal);border-color:var(--rebal)}
+  .ghost.go2{background:var(--ok);color:#10161F;border-color:transparent;font-size:17px;padding:14px}
+
+  .flash{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--panel-2);
+    border-left:3px solid var(--ok);font-size:14px;line-height:1.6;color:var(--text)}
+  .flash[hidden]{display:none}
+
+  table.curve{width:100%;border-collapse:collapse;font-size:14px}
+  table.curve td{padding:7px 2px;border-bottom:1px solid var(--line);color:var(--muted)}
+  table.curve tr:last-child td{border:none}
+  table.curve td.v{text-align:right;color:var(--text);font-weight:700;font-size:16px;white-space:nowrap}
+  table.curve td.s{text-align:right;font-size:11px;width:90px}
+  .m-real{color:var(--ok)}
+  .m-est{color:var(--muted);opacity:.8}
+  .m-borrow{color:var(--normal);opacity:.9}
+
+  .log{max-height:200px;overflow-y:auto;font-size:13px;line-height:1.5}
+  .log div{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;
+    border-bottom:1px solid var(--line);color:var(--muted)}
+  .log div:last-child{border:none}
+  .log s{color:var(--text);text-decoration:none;font-weight:600}
+  .log button{background:none;border:none;color:var(--rebal);font-size:16px;cursor:pointer;padding:0 4px}
+  @media (min-width:700px){
+    body{align-items:center;padding:24px}
+    .app{height:min(900px,calc(100dvh - 48px));border:1px solid rgba(155,170,200,.16);
+      border-radius:28px;padding:18px 18px 12px;box-shadow:0 28px 90px rgba(0,0,0,.38);
+      background:rgba(11,16,32,.65);backdrop-filter:blur(18px)}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* V3 visual system */
+  .app:before{display:none}
+  .app-header{display:flex;align-items:center;gap:11px;flex:none;padding:7px 2px 13px}
+  .brand-mark{width:43px;height:43px;display:grid;place-items:center;flex:none;border-radius:15px;
+    color:#071521;background:linear-gradient(145deg,#A5F3FC,#22D3EE);
+    box-shadow:0 7px 22px rgba(34,211,238,.18)}
+  .brand-copy{min-width:0;flex:1}
+  .brand-title{font-size:17px;font-weight:700;letter-spacing:.6px;line-height:1.2;color:#F3F6FF}
+  .brand-title span{color:var(--normal);font-weight:500}
+  .brand-subtitle{font-size:9px;letter-spacing:1.35px;color:var(--muted);margin-top:3px}
+  .live-chip{display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid rgba(110,231,183,.2);
+    background:rgba(110,231,183,.07);border-radius:999px;color:#A7F3D0;font-size:9px;font-weight:700;
+    letter-spacing:.35px;white-space:nowrap}
+  .live-chip span{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 9px rgba(110,231,183,.65)}
+  .tabs{display:flex;gap:5px;flex:none;padding:5px;margin:0 0 9px;border-radius:16px;
+    background:rgba(17,27,47,.88);border:1px solid rgba(155,170,200,.13);backdrop-filter:blur(14px)}
+  .tab{flex:1;padding:12px 0;border:0;border-radius:12px;background:transparent;color:var(--muted);
+    font:600 15px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer;transition:background .18s,color .18s}
+  .tab[aria-selected="true"]{background:linear-gradient(135deg,#263957,#1b2944);color:#F3F6FF;
+    box-shadow:inset 0 0 0 1px rgba(103,232,249,.17),0 3px 10px rgba(0,0,0,.12)}
+  .view{gap:10px;padding:1px 1px 16px}
+  .modes{gap:9px}
+  .mode{min-height:63px;border:1px solid rgba(155,170,200,.15);border-radius:17px;
+    background:rgba(20,29,50,.86);padding:12px 8px}
+  .mode small{font-size:11px;letter-spacing:.1px}
+  .card,.sgroup{padding:15px;border-radius:19px;border-color:rgba(155,170,200,.13);
+    box-shadow:0 10px 28px rgba(0,0,0,.13)}
+  .lbl{font-size:13px;letter-spacing:.05px}
+  .stepper{gap:10px}
+  .step{width:54px;height:54px;border-radius:16px;font-size:29px;background:#202E4A}
+  .pctwrap{gap:4px}
+  #pct-in{font-size:55px;border-bottom-width:2px}
+  .pctwrap i{font-size:23px}
+  input[type=time],input[type=number]{background:#101A2E;border-color:#304261;border-radius:12px}
+  .go{border-radius:16px;min-height:56px;letter-spacing:.1px}
+  .go:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .go:active{transform:translateY(0);filter:brightness(.94)}
+  .out{border-radius:22px;border-color:rgba(155,170,200,.14);padding:20px 16px;gap:7px;
+    background:radial-gradient(ellipse at 50% 0%,rgba(103,232,249,.08),transparent 60%),
+      linear-gradient(145deg,rgba(25,37,62,.98),rgba(17,27,47,.98))}
+  .big{font-size:clamp(54px,14vw,66px)}
+  .big-lbl{font-size:13px;letter-spacing:.25px}
+  .sub{font-size:16px}
+  .hint{line-height:1.65}
+  .mark{border-radius:13px;background:rgba(110,231,183,.04)}
+  .mark:hover{background:rgba(110,231,183,.1)}
+  .sgroup h2{font-size:16px;letter-spacing:.1px}
+  .srow{gap:12px}
+  .srow label{font-size:14px}
+  .pick button{border-radius:12px}
+  .tip{border-radius:0 12px 12px 0}
+  .ghost{border-radius:12px}
+  button,input{outline-offset:3px}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent)}
+  @media (min-width:700px){
+    .app{height:min(920px,calc(100dvh - 48px));max-width:500px;padding:17px 19px 12px;
+      border:1px solid rgba(155,170,200,.16);border-radius:29px;box-shadow:0 28px 90px rgba(0,0,0,.4);
+      background:rgba(11,16,32,.72);backdrop-filter:blur(18px)}
+    .brand-title{font-size:18px}
+    .view{padding-right:3px;padding-left:3px}
+  }
+  @media (max-width:360px){
+    .app{padding-left:11px;padding-right:11px}
+    .live-chip{font-size:8px;padding:6px 7px}
+    .brand-title{font-size:15px}
+    .step{width:47px;height:50px}
+    #pct-in{font-size:49px}
+    input[type=time]{width:122px;font-size:22px}
+  }
+
+
+  .service-detail summary{font-size:16px!important}
+  .service-detail summary span{font-size:11px!important}
+  .service-table{margin-top:4px}
+  .service-table td:first-child{font-size:13px;line-height:1.4}
+  .service-table td.v{font-size:13px}
+  .service-table td.s{font-size:12px;color:var(--normal);white-space:nowrap}
+  .service-table td{padding:10px 2px!important}
+\n
+  .service-reminders{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .service-reminder-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:11px 12px;border-radius:13px;background:rgba(16,26,46,.8);border:1px solid rgba(155,170,200,.12)}
+  .service-reminder-row b{display:block;font-size:13px;font-weight:600}
+  .service-reminder-row small{display:block;color:var(--muted);font-size:11px;line-height:1.5;margin-top:3px}
+  .service-reminder-row strong{font-size:12px;text-align:right;color:var(--ok);white-space:nowrap}
+  .service-reminder-row strong.due{color:var(--rebal)}
+  .service-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
+  .service-stat{display:flex;flex-direction:column;gap:3px;padding:10px 8px;border-radius:13px;background:#101A2E;
+    border:1px solid rgba(155,170,200,.1);min-width:0}
+  .service-stat small{font-size:10px;line-height:1.35;color:var(--muted)}
+  .service-stat strong{font-size:20px;line-height:1.2;color:var(--normal);overflow-wrap:anywhere}
+  .service-stat span{font-size:10px;color:var(--muted)}
+  .service-chart-title{font-size:13px;font-weight:700;margin-top:15px;margin-bottom:7px}
+  .service-rate-chart{background:#101A2E;border:1px solid rgba(155,170,200,.1);border-radius:13px;padding:12px}
+  .rate-chart-row{display:grid;grid-template-columns:52px minmax(0,1fr) 58px;gap:8px;align-items:center;margin:8px 0;font-size:11px}
+  .rate-chart-track{height:9px;background:#25334F;border-radius:99px;overflow:hidden}
+  .rate-chart-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#22D3EE,#67E8F9)}
+  .rate-chart-value{text-align:right;color:var(--text);font-variant-numeric:tabular-nums}
+  .rate-chart-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px}
+  .amp-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .amp-options label{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#101A2E;color:var(--text);font-size:13px}
+  .amp-options input{accent-color:var(--normal);width:17px;height:17px}
+  .charge-amp-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+  .charge-amp-option{min-width:0;position:relative}
+  .charge-amp-option input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+  .charge-amp-option span{display:flex;align-items:center;justify-content:center;min-height:40px;padding:7px 4px;border:1px solid var(--line);border-radius:10px;background:#101A2E;color:var(--text);font-size:13px;font-weight:700;white-space:nowrap}
+  .charge-amp-option input:checked+span{border-color:var(--normal);background:rgba(56,189,248,.13);color:var(--normal);box-shadow:inset 0 0 0 1px var(--normal)}
+  .charge-amp-option input:focus-visible+span{outline:2px solid var(--normal);outline-offset:2px}
+\n</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="25" height="25" fill="none">
+        <path d="M18.2 2.8 7.5 17h7.2l-1 12.2L24.5 14h-7.2l.9-11.2Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="brand-copy">
+      <div class="brand-title">ATTO 3 <span>CHARGE</span></div>
+      <div class="brand-subtitle">SMART CHARGING PLANNER</div>
+    </div>
+    <div class="live-chip"><span></span> AC CHARGING</div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" id="tab-main" role="tab" aria-selected="true" aria-controls="view-main">ชาร์จ</button>
+    <button class="tab" id="tab-set" role="tab" aria-selected="false" aria-controls="view-set">ตั้งค่า</button>
+  </nav>
+
+  <section class="view on" id="view-main" role="tabpanel" aria-labelledby="tab-main">
+
+    <div class="ask" id="ask" hidden>
+      <div class="q" id="ask-q"></div>
+      <div class="body">
+        <div class="askrow">
+          <button class="mini" id="ask-minus" aria-label="ลด 1 เปอร์เซ็นต์">−</button>
+          <div id="ask-val">90%</div>
+          <button class="mini" id="ask-plus" aria-label="เพิ่ม 1 เปอร์เซ็นต์">+</button>
+        </div>
+        <div class="askbtns">
+          <button id="ask-save">บันทึกผล</button>
+          <button id="ask-skip">ไว้ทีหลัง</button>
+          <button id="ask-cancel">ยกเลิกแผน</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modes">
+      <button class="mode" id="m-normal" aria-pressed="true">ปกติ<small id="m-normal-sub">ถึง 90%</small></button>
+      <button class="mode" id="m-rebal" aria-pressed="false">รีบาลานซ์<small id="m-rebal-sub">100% + แช่ 1 ชม.</small></button>
+    </div>
+
+    <div class="card">
+      <div class="lbl">แบตเหลืออยู่ — กด +/− หรือแตะตัวเลขเพื่อพิมพ์</div>
+      <div class="stepper">
+        <button class="step" id="minus" aria-label="ลด 5 เปอร์เซ็นต์">−</button>
+        <div class="pctwrap">
+          <input id="pct-in" type="text" inputmode="numeric" maxlength="3" value="60" aria-label="เปอร์เซ็นต์แบตที่เหลือ">
+          <i>%</i>
+        </div>
+        <button class="step" id="plus" aria-label="เพิ่ม 5 เปอร์เซ็นต์">+</button>
+      </div>
+    </div>
+
+    <div class="card" id="main-current-card" style="padding:12px">
+      <div class="lbl" style="margin-bottom:9px">กระแสชาร์จ (A)</div>
+      <div id="main-current-options" class="charge-amp-options" role="radiogroup" aria-label="เลือกกระแสชาร์จสำหรับคำนวณเวลา"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="lbl" style="margin:0">อยากให้เสร็จตอน</div>
+        <input type="time" id="finish" value="07:00">
+      </div>
+    </div>
+
+    <button class="go" id="go">คำนวณ</button>
+
+    <div class="out" id="out">
+      <div class="hint">ใส่เปอร์เซ็นต์แบตที่เหลือ แล้วกดคำนวณ<br>ระบบจะบอกว่าต้องเริ่มชาร์จกี่โมง</div>
+    </div>
+
+    <details class="sgroup service-detail" id="service-detail">
+      <summary>Service Detail <span>ประวัติการดูแลแบตเตอรี่</span></summary>
+      <table class="curve service-table">
+        <tbody>
+          <tr>
+            <td>ชาร์จ 100% ล่าสุด</td>
+            <td class="v" id="service-full-date">ยังไม่มีข้อมูล</td>
+            <td class="s" id="service-full-days">—</td>
+          </tr>
+          <tr>
+            <td>ชาร์จจากแบตต่ำ (≤10%) ล่าสุด</td>
+            <td class="v" id="service-low-date">ยังไม่มีข้อมูล</td>
+            <td class="s" id="service-low-days">—</td>
+          </tr>
+          <tr>
+            <td>รอบชาร์จหลังเต็ม 100% ล่าสุด</td>
+            <td class="v" id="service-cycles-since-full">—</td>
+            <td class="s">ครั้ง</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="service-reminders">
+        <div class="service-reminder-row">
+          <div><b>เตือนชาร์จเต็ม 100%</b><small id="service-full-reminder-detail">ตั้งรอบเตือนได้ในหน้าตั้งค่า</small></div>
+          <strong id="service-full-reminder-status">ยังไม่มีข้อมูล</strong>
+        </div>
+        <div class="service-reminder-row">
+          <div><b>เตือนรอบชาร์จจากแบตต่ำ</b><small id="service-low-reminder-detail">ตั้งรอบเตือนได้ในหน้าตั้งค่า</small></div>
+          <strong id="service-low-reminder-status">ยังไม่มีข้อมูล</strong>
+        </div>
+      </div>
+      <div class="service-stats">
+        <div class="service-stat"><small>จำนวนประวัติ</small><strong id="service-total-sessions">0</strong><span>ครั้ง</span></div>
+        <div class="service-stat"><small>พลังงานเพิ่มในแบต*</small><strong id="service-total-kwh">0.0</strong><span>kWh</span></div>
+        <div class="service-stat"><small>เวลาโดยประมาณรวม</small><strong id="service-total-hours">0</strong><span>ชั่วโมง</span></div>
+      </div>
+      <div class="service-chart-title">อัตราชาร์จเฉลี่ยตามช่วงแบตเตอรี่</div>
+      <div id="service-rate-chart" class="service-rate-chart"><div class="tip">บันทึกค่า kW จริงในหน้าตั้งค่าเพื่อสร้างกราฟ</div></div>
+      <div class="tip" style="margin-top:10px;border-left-color:var(--normal)">
+        *พลังงานเพิ่มในแบตเป็นค่าประมาณจากเปอร์เซ็นต์แบตที่บันทึก ไม่ใช่ไฟฟ้าที่ดึงจากมิเตอร์ และไม่ใช่ค่า SOH ของแบตเตอรี่
+      </div>
+    </details>
+  </section>
+
+  <section class="view" id="view-set" role="tabpanel" aria-labelledby="tab-set">
+
+    <div class="sgroup">
+      <h2>กำลังชาร์จสำหรับคำนวณ</h2>
+      <div class="srow">
+        <label for="s-default-kw">กำลังชาร์จสูงสุด/มาตรฐาน (kW)</label>
+        <input type="number" id="s-default-kw" min="0.5" max="7" step="0.1" value="6.4">
+      </div>
+      <div class="tip">ใช้เป็นค่าตั้งต้นเมื่อไม่มีประวัติ และเป็นเพดานกำลังไฟที่ใช้คำนวณในโหมดเลือกแอมป์ เช่น 6.4 kW เปลี่ยนได้ตามข้อมูลจริงของรถ</div>
+      <div class="srow" style="margin-top:12px">
+        <label for="s-current">กระแสที่ใช้ประเมินเวลา</label>
+        <select id="s-current">
+          <option value="0">อัตโนมัติ — ใช้ประวัติ / ค่ามาตรฐาน</option>
+        </select>
+      </div>
+      <div class="srow" style="margin-top:12px">
+        <label for="s-max-amps">กระแสอ้างอิงสำหรับ MAX (A)</label>
+        <input type="number" id="s-max-amps" min="6" max="32" step="1" value="32">
+      </div>
+      <div class="tip">MAX คือเพดานกำลังชาร์จตามค่า kW มาตรฐาน เช่น 6.4 kW ส่วนตัวเลือกแอมป์ที่ต่ำกว่าจะลดสัดส่วนจากกระแสอ้างอิงนี้ ตัวเลือกนี้เป็นแบบจำลองเวลา ไม่ได้ส่งคำสั่งควบคุมรถ และต้องตรวจตัวเลือกจริงในรถก่อนใช้งานอ้างอิง</div>
+      <div class="srow" style="display:block;margin-top:12px">
+        <label style="display:block;margin-bottom:8px">กำหนดตัวเลือกกระแสที่ให้แสดง</label>
+        <div id="amp-options" class="amp-options">
+          <label><input type="checkbox" value="2"> 2 A</label>
+          <label><input type="checkbox" value="4"> 4 A</label>
+          <label><input type="checkbox" value="6" checked> 6 A</label>
+          <label><input type="checkbox" value="8" checked> 8 A</label>
+          <label><input type="checkbox" value="10" checked> 10 A</label>
+          <label><input type="checkbox" value="16" checked> 16 A</label>
+          <label><input type="checkbox" value="32"> 32 A (จำลอง)</label>
+          <label><input type="checkbox" value="max" checked> MAX (ตามค่า kW สูงสุด)</label>
+        </div>
+        <div class="tip" style="margin-top:8px">ค่าเริ่มต้นเป็น 6A, 8A, 10A, 16A และ MAX โดยอิงรายการที่พบในคู่มือบางฉบับเท่านั้น ยังต้องตรวจสอบกับหน้าจอรถไทยของเฮีย ตัวเลือกอื่นเปิดเพิ่มได้ตามต้องการ</div>
+      </div>
+      <div id="current-preview" class="tip" style="margin-top:10px;border-left-color:var(--normal)">อัตโนมัติ: ใช้ประวัติจริง หรือค่ามาตรฐาน 6.4 kW</div>
+    </div>
+
+    <div class="sgroup">
+      <h2>โหมดปกติ</h2>
+      <div class="srow">
+        <label for="s-max">ชาร์จสูงสุดถึง (%)</label>
+        <input type="number" id="s-max" min="50" max="100" step="1" value="90">
+      </div>
+      <div class="srow">
+        <label for="s-finish">เวลาเสร็จเริ่มต้น</label>
+        <input type="time" id="s-finish" value="07:00">
+      </div>
+      <div class="tip">เวลานี้ขึ้นอัตโนมัติทุกครั้งที่เปิดแอพ แก้เฉพาะวันไหนก็แก้ที่หน้าชาร์จได้ ไม่กระทบค่าตรงนี้</div>
+    </div>
+
+    <div class="sgroup">
+      <h2>โหมดรีบาลานซ์</h2>
+      <div class="srow">
+        <label>ชาร์จสูงสุดถึง</label>
+        <span class="fixed">100%</span>
+      </div>
+      <div class="srow" style="display:block">
+        <label style="display:block;margin-bottom:8px">แช่ไฟต่อหลังแบตเต็ม</label>
+        <div class="pick">
+          <button id="soak-1" aria-pressed="true">1 ชั่วโมง</button>
+          <button id="soak-2" aria-pressed="false">2 ชั่วโมง</button>
+        </div>
+      </div>
+      <div class="tip" style="margin-top:12px">
+        รีบาลานซ์ทุก <b>1-2 สัปดาห์</b> → แช่ <b>1 ชั่วโมง</b> พอ<br>
+        ถ้าเว้นนานกว่านั้น → แนะนำ <b>2 ชั่วโมง</b>
+      </div>
+    </div>
+
+    <div class="sgroup">
+      <h2>การแจ้งเตือนและสถิติ</h2>
+      <div class="srow">
+        <label for="s-full-interval">เตือนรอบชาร์จ 100% ทุก (วัน)</label>
+        <input type="number" id="s-full-interval" min="1" max="365" step="1" value="7">
+      </div>
+      <div class="srow">
+        <label for="s-low-interval">เตือนรอบชาร์จจากแบตต่ำทุก (วัน)</label>
+        <input type="number" id="s-low-interval" min="30" max="365" step="1" value="180">
+      </div>
+      <div class="tip">ค่าเริ่มต้นเป็นการตั้งเตือนเพื่อช่วยติดตาม ไม่ใช่ข้อกำหนดทางเทคนิคจาก BYD สามารถปรับตามคู่มือรถและคำแนะนำศูนย์บริการได้</div>
+    </div>
+
+    <div class="sgroup">
+      <h2>บันทึกค่าไฟเข้า</h2>
+      <div class="srow">
+        <label for="r-pct">ตอนนี้แบตกี่ %</label>
+        <input type="number" id="r-pct" min="0" max="100" step="1" placeholder="83">
+      </div>
+      <div class="srow">
+        <label for="r-kw">จอรถแสดงกี่ kW</label>
+        <input type="number" id="r-kw" min="1" max="11" step="0.1" placeholder="5.2">
+      </div>
+      <button class="ghost go2" id="r-save">บันทึกค่า</button>
+      <div class="flash" id="r-flash" hidden></div>
+      <div class="tip" style="margin-top:10px;border-left-color:var(--normal)">
+        ตัวเลขบนจอรถแกว่งได้ — ดูสัก 10-20 วินาที แล้วกรอกค่าที่เห็นบ่อยที่สุด บันทึกช่วงเดิมซ้ำได้ ระบบเฉลี่ยให้เอง
+      </div>
+    </div>
+
+    <details class="sgroup">
+      <summary>อัตราการชาร์จแต่ละช่วง <span id="curve-sum">—</span></summary>
+      <table class="curve" id="curve"></table>
+      <div class="tip" style="margin-top:10px;border-left-color:var(--ok)">
+        <span class="m-real">■</span> วัดจริง &nbsp; <span class="m-est">■</span> ประมาณจากช่วงข้างเคียง &nbsp; <span class="m-borrow">■</span> ยืมค่าจากช่วง 20-30%
+      </div>
+    </details>
+
+    <details class="sgroup">
+      <summary>ข้อมูลดิบที่บันทึกไว้ <span id="raw-sum">—</span></summary>
+      <div class="log" id="raw-log"></div>
+      <button class="ghost danger" id="raw-clear">ล้างข้อมูลดิบทั้งหมด</button>
+    </details>
+
+    <details class="sgroup">
+      <summary>ประวัติการชาร์จ <span id="hist-sum">—</span></summary>
+      <div class="log" id="hist-log"></div>
+      <button class="ghost danger" id="hist-clear">ล้างประวัติทั้งหมด</button>
+    </details>
+
+    <div class="sgroup">
+      <h2>สำรองและกู้คืนข้อมูล</h2>
+      <div class="tip">ข้อมูลปัจจุบันอยู่ในเบราว์เซอร์ของเครื่องนี้ ใช้ส่งออกเป็น JSON เพื่อสำรองหรือย้ายเครื่อง ข้อมูลยังไม่ซิงก์ Google Drive อัตโนมัติ</div>
+      <button class="ghost go2" id="export-data">ส่งออกข้อมูลสำรอง (JSON)</button>
+      <button class="ghost" id="import-data">นำเข้าข้อมูลสำรอง (JSON)</button>
+      <input type="file" id="import-file" accept="application/json,.json" hidden>
+      <div class="flash" id="backup-flash" hidden></div>
+    </div>
+
+    <div class="spec">ค่าที่ตั้งไว้ถูกจำไว้ในเบราว์เซอร์นี้<br>BYD ATTO 3 Extended Range · แบต 60.48 kWh · ค่ามาตรฐาน <span id="spec-default-kw">6.4</span> kW</div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var BATTERY=60.48, DEFKW=6.4, VOLTAGE=230, MAXRAW=300, MAXHIST=500;
+  var DEFAULT_AMP_OPTIONS=['6','8','10','16','max'];
+  var ALLOWED_AMP_OPTIONS=['2','4','6','8','10','16','32','max'];
+  var BANDS=[[0,10],[10,20],[20,30],[30,40],[40,50],[50,60],[60,70],[70,80],[80,85],[85,90],[90,95],[95,100]];
+  var BORROW_FROM=2;
+
+  var mem={};
+  function load(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return k in mem?mem[k]:d; } }
+  function save(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } }
+  function loadJSON(k,d){ try{ return JSON.parse(load(k,'null')) || d; }catch(e){ return d; } }
+  var $=function(id){ return document.getElementById(id); };
+  function pad(n){ return (n<10?'0':'')+n; }
+  function hhmm(d){ return pad(d.getHours())+':'+pad(d.getMinutes()); }
+  function dur(h){
+    var m=Math.round(h*60),H=Math.floor(m/60),M=m%60;
+    if(H===0) return M+' นาที';
+    if(M===0) return H+' ชั่วโมง';
+    return H+' ชม. '+M+' นาที';
+  }
+
+  save('ver','9');
+  var state={
+    pct:60, mode:'normal',
+    max:parseInt(load('max','90'),10),
+    defFinish:load('defFinish','07:00'),
+    soak:parseInt(load('soak','1'),10),
+    defaultKw:Math.max(0.5,Math.min(7,parseFloat(load('defaultKw',String(DEFKW)))||DEFKW)),
+    maxAmps:Math.max(6,Math.min(32,parseInt(load('maxAmps','32'),10)||32)),
+    amps:'max'
+  };
+  var fullInterval=Math.max(1,Math.min(365,parseInt(load('fullInterval','7'),10)||7));
+  var lowInterval=Math.max(30,Math.min(365,parseInt(load('lowInterval','180'),10)||180));
+  var raw=loadJSON('raw',[]);
+  var hist=loadJSON('log',[]);
+  var pend=loadJSON('pend',null);
+  var ampOptions=loadJSON('ampOptions',DEFAULT_AMP_OPTIONS.slice()).filter(function(a,i,arr){return ALLOWED_AMP_OPTIONS.indexOf(String(a))>=0 && arr.indexOf(a)===i;}).map(String);
+  if(!ampOptions.length) ampOptions=DEFAULT_AMP_OPTIONS.slice();
+  var lastCalc=null;
+
+  /* ---------- curve resolution ---------- */
+  function bandOf(p){
+    for(var i=0;i<BANDS.length;i++){
+      if(p>=BANDS[i][0] && (p<BANDS[i][1] || (i===BANDS.length-1 && p<=100))) return i;
+    }
+    return BANDS.length-1;
+  }
+  function mid(i){ return (BANDS[i][0]+BANDS[i][1])/2; }
+
+  function resolveCurve(filterAmps){
+    var meas=[], cnt=[];
+    for(var i=0;i<BANDS.length;i++){ meas[i]=null; cnt[i]=0; }
+    var sum=[];
+    for(i=0;i<BANDS.length;i++) sum[i]=0;
+    raw.forEach(function(r){
+      // Keep measured charging rates separated by the selected current; legacy records belong to Auto.
+      if(filterAmps!==undefined && String(r.amps===undefined?'0':r.amps)!==String(filterAmps)) return;
+      var b=bandOf(r.p); sum[b]+=r.kw; cnt[b]++;
+    });
+    for(i=0;i<BANDS.length;i++) if(cnt[i]) meas[i]=sum[i]/cnt[i];
+
+    var idx=[];
+    for(i=0;i<BANDS.length;i++) if(meas[i]!==null) idx.push(i);
+
+    var val=[], src=[];
+    if(!idx.length){
+      for(i=0;i<BANDS.length;i++){ val[i]=state.defaultKw; src[i]='default'; }
+      return { val:val, src:src, cnt:cnt, measured:0 };
+    }
+
+    for(i=0;i<BANDS.length;i++){
+      if(meas[i]!==null){ val[i]=meas[i]; src[i]='real'; continue; }
+      var prev=null,next=null,j;
+      for(j=i-1;j>=0;j--) if(meas[j]!==null){ prev=j; break; }
+      for(j=i+1;j<BANDS.length;j++) if(meas[j]!==null){ next=j; break; }
+      if(prev!==null && next!==null){
+        var t=(mid(i)-mid(prev))/(mid(next)-mid(prev));
+        val[i]=meas[prev]+(meas[next]-meas[prev])*t;
+      }else if(prev!==null){
+        if(idx.length>=2){
+          var a=idx[idx.length-2], b=idx[idx.length-1];
+          var slope=(meas[b]-meas[a])/(mid(b)-mid(a));
+          val[i]=Math.max(2, meas[b]+slope*(mid(i)-mid(b)));
+        }else val[i]=meas[prev];
+      }else{
+        val[i]=meas[next];
+      }
+      src[i]='est';
+    }
+    for(i=0;i<BORROW_FROM;i++){
+      if(meas[i]===null){ val[i]=val[BORROW_FROM]; src[i]='borrow'; }
+    }
+    // Treat the configured kW as the planner's ceiling; raw observations remain unchanged.
+    for(i=0;i<BANDS.length;i++) val[i]=Math.max(0.1,Math.min(state.defaultKw,val[i]));
+    return { val:val, src:src, cnt:cnt, measured:idx.length };
+  }
+
+  function chargeHours(from,to){
+    var selected=state.amps!=='0' && state.amps!==0;
+    var C=resolveCurve(selected?String(state.amps):'0'), h=0, used={real:0,est:0,borrow:0,'default':0,amp:0};
+    for(var i=0;i<BANDS.length;i++){
+      var lo=Math.max(from,BANDS[i][0]), hi=Math.min(to,BANDS[i][1]);
+      if(hi<=lo) continue;
+      var kwh=(hi-lo)/100*BATTERY, kw=C.val[i], source=C.src[i];
+      if(selected){
+        // Use a measured rate for this current and SOC band when available; otherwise scale from MAX.
+        if(C.cnt[i]>0){ source='real'; }
+        else { kw=state.amps==='max'?state.defaultKw:state.defaultKw*Math.min(Number(state.amps),state.maxAmps)/state.maxAmps; source='amp'; }
+      }
+      kw=Math.max(0.1,Math.min(state.defaultKw,kw));
+      h += kwh/kw;
+      if(source==='amp') used.amp++; else used[source]=(used[source]||0)+1;
+    }
+    return { h:h, used:used, C:C, ampKw:selected?(state.amps==='max'?state.defaultKw:state.defaultKw*Math.min(Number(state.amps),state.maxAmps)/state.maxAmps):null };
+  }
+
+  /* ---------- tabs ---------- */
+  function showTab(w){
+    var main=w==='main';
+    $('tab-main').setAttribute('aria-selected',main);
+    $('tab-set').setAttribute('aria-selected',!main);
+    $('view-main').classList.toggle('on',main);
+    $('view-set').classList.toggle('on',!main);
+    if(!main) renderAll();
+  }
+  $('tab-main').onclick=function(){ showTab('main'); };
+  $('tab-set').onclick=function(){ showTab('set'); };
+
+  /* ---------- mode ---------- */
+  function setMode(m){
+    state.mode=m; var n=m==='normal';
+    $('m-normal').setAttribute('aria-pressed',n);
+    $('m-rebal').setAttribute('aria-pressed',!n);
+    document.documentElement.style.setProperty('--accent', n?'var(--normal)':'var(--rebal)');
+    clearOut();
+  }
+  $('m-normal').onclick=function(){ setMode('normal'); };
+  $('m-rebal').onclick=function(){ setMode('rebalance'); };
+
+  /* ---------- battery ---------- */
+  var pctIn=$('pct-in');
+  function setPct(v,quiet){
+    state.pct=Math.max(0,Math.min(100,v));
+    if(!quiet) pctIn.value=state.pct;
+    clearOut();
+  }
+  pctIn.addEventListener('focus',function(){ this.select(); });
+  pctIn.addEventListener('input',function(){
+    this.value=this.value.replace(/[^0-9]/g,'').slice(0,3);
+    var n=parseInt(this.value,10); if(!isNaN(n)) setPct(n,true);
+  });
+  pctIn.addEventListener('blur',function(){ var n=parseInt(this.value,10); setPct(isNaN(n)?0:n); });
+  pctIn.addEventListener('keydown',function(e){ if(e.key==='Enter') this.blur(); });
+  function hold(btn,fn){
+    var t,i;
+    function start(e){ e.preventDefault(); pctIn.blur(); fn(); t=setTimeout(function(){ i=setInterval(fn,90); },450); }
+    function stop(){ clearTimeout(t); clearInterval(i); }
+    btn.addEventListener('pointerdown',start);
+    ['pointerup','pointerleave','pointercancel'].forEach(function(e){ btn.addEventListener(e,stop); });
+  }
+  hold($('plus'),function(){ setPct(Math.floor(state.pct/5)*5+5); });
+  hold($('minus'),function(){ setPct(Math.ceil(state.pct/5)*5-5); });
+
+  /* ---------- record kW ---------- */
+  $('r-save').onclick=function(){
+    var p=parseInt($('r-pct').value,10), k=parseFloat($('r-kw').value);
+    var F=$('r-flash');
+    if(isNaN(p)||p<0||p>100){ F.hidden=false; F.textContent='กรอก % ให้อยู่ระหว่าง 0-100'; return; }
+    if(isNaN(k)||k<1||k>11){ F.hidden=false; F.textContent='กรอก kW ให้อยู่ระหว่าง 1-11'; return; }
+    k=Math.round(k*100)/100;
+    var d=new Date();
+    raw.push({ p:p, kw:k, amps:String(state.amps), d:pad(d.getDate())+'/'+pad(d.getMonth()+1), t:d.getTime() });
+    if(raw.length>MAXRAW) raw=raw.slice(-MAXRAW);
+    save('raw',JSON.stringify(raw));
+    var b=bandOf(p), C=resolveCurve();
+    F.hidden=false;
+    F.innerHTML='บันทึก <b>'+k.toFixed(1)+' kW</b> ที่ '+p+'% → ช่วง '+BANDS[b][0]+'-'+BANDS[b][1]+'%<br>'+
+      'ช่วงนี้บันทึกแล้ว '+C.cnt[b]+' ครั้ง · เฉลี่ย '+C.val[b].toFixed(2)+' kW';
+    $('r-pct').value=''; $('r-kw').value='';
+    renderAll(); clearOut();
+  };
+
+  /* ---------- render ---------- */
+  function renderCurve(){
+    var C=resolveCurve(state.amps==='0'?'0':String(state.amps)), T=$('curve'), html='';
+    for(var i=0;i<BANDS.length;i++){
+      var cls = C.src[i]==='real'?'m-real' : C.src[i]==='borrow'?'m-borrow':'m-est';
+      var note = C.src[i]==='real' ? 'วัดจริง '+C.cnt[i]+' ครั้ง'
+               : C.src[i]==='borrow' ? 'ยืมจาก 20-30%'
+               : C.src[i]==='default' ? 'ค่าตั้งต้น' : 'ประมาณ';
+      html+='<tr><td>'+BANDS[i][0]+'-'+BANDS[i][1]+'%</td>'+
+            '<td class="v '+cls+'">'+C.val[i].toFixed(2)+' kW</td>'+
+            '<td class="s '+cls+'">'+note+'</td></tr>';
+    }
+    T.innerHTML=html;
+    $('curve-sum').textContent='วัดจริง '+C.measured+'/'+BANDS.length+' ช่วง · '+(state.amps==='0'?'อัตโนมัติ':state.amps==='max'?'MAX':state.amps+'A');
+  }
+  function renderRaw(){
+    var L=$('raw-log'); L.innerHTML='';
+    if(!raw.length){ L.innerHTML='<div style="border:none">ยังไม่มีข้อมูล</div>'; }
+    raw.slice().reverse().forEach(function(r){
+      var d=document.createElement('div');
+      d.innerHTML='<span>'+r.d+' · <s>'+r.p+'%</s> → <s>'+r.kw.toFixed(1)+' kW</s></span>';
+      var b=document.createElement('button');
+      b.textContent='✕'; b.title='ลบ';
+      b.onclick=function(){
+        raw=raw.filter(function(x){ return x.t!==r.t; });
+        save('raw',JSON.stringify(raw)); renderAll(); clearOut();
+      };
+      d.appendChild(b); L.appendChild(d);
+    });
+    $('raw-sum').textContent=raw.length+' จุด';
+  }
+  function renderHist(){
+    var L=$('hist-log'); L.innerHTML='';
+    if(!hist.length){ L.innerHTML='<div style="border:none">ยังไม่มีประวัติ</div>'; }
+    hist.slice().reverse().forEach(function(r){
+      var d=document.createElement('div');
+      var off = r.predH ? Math.round((r.predH>0 ? ((r.got-r.from)/(r.target-r.from)-1)*100 : 0)) : null;
+      d.innerHTML='<span>'+r.date+' · '+r.from+'%→'+r.target+'%</span>'+
+        '<s>'+(r.got>=r.target?'ถึงเป้า':'ได้ '+r.got+'%')+'</s>';
+      L.appendChild(d);
+    });
+    $('hist-sum').textContent=hist.length+' ครั้ง';
+  }
+  function elapsedLabel(ts){
+    if(!ts || !isFinite(ts)) return null;
+    var days=Math.max(0,Math.floor((Date.now()-ts)/86400000));
+    return days===0?'วันนี้':days+' วัน';
+  }
+  function dateLabel(ts){
+    if(!ts || !isFinite(ts)) return null;
+    var d=new Date(ts);
+    return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();
+  }
+  function historyTimestamp(r){
+    if(r.ts) return Number(r.ts);
+    if(r.t) return Number(r.t);
+    if(r.date){
+      var m=String(r.date).match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+      if(m){
+        var yr=m[3] ? Number(m[3]) : new Date().getFullYear();
+        if(yr<100) yr+=2000;
+        return new Date(yr,Number(m[2])-1,Number(m[1]),12,0,0,0).getTime();
+      }
+    }
+    return null;
+  }
+  function renderServiceDetail(){
+    var full=null, low=null, sessions=[];
+    hist.forEach(function(r){
+      var ts=historyTimestamp(r);
+      if(!ts) return;
+      sessions.push({ts:ts, record:r});
+      if(Number(r.target)>=100 && Number(r.got)>=100 && (!full || ts>full.ts))
+        full={ts:ts};
+      if(Number(r.from)<=10 && Number(r.target)>Number(r.from) && (!low || ts>low.ts))
+        low={ts:ts};
+    });
+    $('service-full-date').textContent=full?dateLabel(full.ts):'ยังไม่มีข้อมูล';
+    $('service-full-days').textContent=full?elapsedLabel(full.ts):'—';
+    $('service-low-date').textContent=low?dateLabel(low.ts):'ยังไม่มีข้อมูล';
+    $('service-low-days').textContent=low?elapsedLabel(low.ts):'—';
+    var cyclesSinceFull=full?sessions.filter(function(s){return s.ts>full.ts;}).length:null;
+    $('service-cycles-since-full').textContent=cyclesSinceFull===null?'—':String(cyclesSinceFull);
+
+    function setReminder(prefix,last,interval){
+      var status=$(prefix+'-reminder-status'), detail=$(prefix+'-reminder-detail');
+      status.classList.remove('due');
+      if(!last){
+        status.textContent='ยังไม่มีข้อมูล';
+        detail.textContent='บันทึกผลจริงในแอปเพื่อเริ่มนับรอบ';
+        return;
+      }
+      var elapsed=Math.max(0,Math.floor((Date.now()-last.ts)/86400000));
+      var remaining=interval-elapsed;
+      detail.textContent='รอบ '+interval+' วัน · ล่าสุด '+dateLabel(last.ts)+' · ผ่านมา '+elapsed+' วัน';
+      if(remaining<=0){
+        status.textContent='ถึงรอบแล้ว';
+        status.classList.add('due');
+      }else{
+        status.textContent='อีก '+remaining+' วัน';
+      }
+    }
+    setReminder('service-full',full,fullInterval);
+    setReminder('service-low',low,lowInterval);
+
+    var totalKwh=0, totalHours=0;
+    hist.forEach(function(r){
+      var from=Number(r.from), got=Number(r.got);
+      if(isFinite(from)&&isFinite(got)&&got>from) totalKwh+=(got-from)/100*BATTERY;
+      if(isFinite(Number(r.predH))&&Number(r.predH)>0) totalHours+=Number(r.predH);
+    });
+    $('service-total-sessions').textContent=String(hist.length);
+    $('service-total-kwh').textContent=totalKwh.toFixed(1);
+    $('service-total-hours').textContent=totalHours.toFixed(1);
+
+    var chart=$('service-rate-chart'), C=resolveCurve(state.amps==='0'?'0':String(state.amps)), max=0, rows=[];
+    for(var i=0;i<BANDS.length;i++){
+      if(C.cnt[i]>0){ rows.push({label:BANDS[i][0]+'–'+BANDS[i][1]+'%',kw:C.val[i],count:C.cnt[i]}); max=Math.max(max,C.val[i]); }
+    }
+    if(!rows.length){
+      chart.innerHTML='<div class="tip">ยังไม่มีค่า kW ที่วัดจริง แนะนำบันทึกค่าจากจอรถตามช่วงแบตเตอรี่</div>';
+    }else{
+      chart.innerHTML=rows.map(function(r){
+        var width=max>0?Math.max(3,r.kw/max*100):0;
+        return '<div class="rate-chart-row"><span>'+r.label+'</span><div class="rate-chart-track"><div class="rate-chart-fill" style="width:'+width.toFixed(1)+'%"></div></div><span class="rate-chart-value">'+r.kw.toFixed(1)+' kW</span></div>';
+      }).join('')+'<div class="rate-chart-note">แสดงเฉพาะช่วงที่มีข้อมูลวัดจริง · จำนวนตัวอย่างรวม '+rows.reduce(function(n,r){return n+r.count;},0)+' จุด · อัตราชาร์จอาจเปลี่ยนตามอุณหภูมิและเงื่อนไขการชาร์จ</div>';
+    }
+  }
+  function renderAll(){ renderCurve(); renderRaw(); renderHist(); renderServiceDetail(); }
+
+  $('raw-clear').onclick=function(){
+    if(!confirm('ล้างข้อมูลดิบทั้งหมด? ย้อนกลับไม่ได้')) return;
+    raw=[]; save('raw','[]'); renderAll(); clearOut();
+  };
+  $('hist-clear').onclick=function(){
+    if(!confirm('ล้างประวัติการชาร์จทั้งหมด?')) return;
+    hist=[]; save('log','[]'); renderAll();
+  };
+
+  /* ---------- morning prompt ---------- */
+  var askVal=90;
+  function showAsk(){
+    if(!pend){ $('ask').hidden=true; return; }
+    var due=new Date(pend.finishAt), now=new Date();
+    if(now<due){ $('ask').hidden=true; return; }
+    var stale=now-due>24*3600000;
+    askVal=pend.target; $('ask-val').textContent=askVal+'%';
+    $('ask-q').innerHTML='<span class="chev">แตะเพื่อตอบ</span>'+(stale?'<b>แผนชาร์จค้าง</b><br>':'เมื่อคืนตั้งชาร์จ ')+ '<b>'+pend.from+'% → '+pend.target+'%</b><br>'+(stale?'แผนนี้เลยกำหนดมามากกว่า 24 ชั่วโมงแล้ว ยังบันทึกผลจริงหรือยกเลิกได้':'เช้านี้แบตได้จริงกี่ %?');
+    $('ask').hidden=false;
+  }
+  $('ask-q').onclick=function(){ $('ask').classList.toggle('open'); };
+  function setAsk(v){ askVal=Math.max(0,Math.min(100,v)); $('ask-val').textContent=askVal+'%'; }
+  $('ask-plus').onclick=function(){ setAsk(askVal+1); };
+  $('ask-minus').onclick=function(){ setAsk(askVal-1); };
+  $('ask-skip').onclick=function(){ $('ask').hidden=true; $('ask').classList.remove('open'); };
+  $('ask-cancel').onclick=function(){ if(!confirm('ยกเลิกแผนที่รอกรอกผลจริง?')) return; pend=null; save('pend','null'); $('ask').hidden=true; $('ask').classList.remove('open'); };
+  $('ask-save').onclick=function(){
+    var d=new Date();
+    hist.push({ date:pad(d.getDate())+'/'+pad(d.getMonth()+1), ts:d.getTime(),
+                 from:pend.from, target:pend.target, got:askVal, amps:pend.amps||'0', kw:pend.kw||null,
+                 predH:Math.round(pend.chargeH*100)/100 });
+    if(hist.length>MAXHIST) hist=hist.slice(-MAXHIST);
+    save('log',JSON.stringify(hist));
+    pend=null; save('pend','null');
+    $('ask').hidden=true; $('ask').classList.remove('open');
+    renderHist(); renderServiceDetail();
+  };
+
+  /* ---------- calculate ---------- */
+  function clearOut(){
+    $('out').innerHTML='<div class="hint">ใส่เปอร์เซ็นต์แบตที่เหลือ แล้วกดคำนวณ<br>ระบบจะบอกว่าต้องเริ่มชาร์จกี่โมง</div>';
+    lastCalc=null;
+  }
+  function subLabels(){
+    $('m-normal-sub').textContent='ถึง '+state.max+'%';
+    $('m-rebal-sub').textContent='100% + แช่ '+state.soak+' ชม.';
+  }
+
+  $('go').onclick=function(){
+    pctIn.blur();
+    var target=state.mode==='normal'?state.max:100;
+    var soak=state.mode==='normal'?0:state.soak;
+    var out=$('out');
+
+    if(state.pct>=target){
+      out.innerHTML='<div class="warn">แบตอยู่ที่ '+state.pct+'% แล้ว<br>ถึงเป้าหมาย '+target+'% พอดี ไม่ต้องชาร์จ</div>';
+      lastCalc=null; return;
+    }
+
+    var R=chargeHours(state.pct,target);
+    var chg=R.h, total=chg+soak;
+    var kwh=(target-state.pct)/100*BATTERY;
+
+    var now=new Date(), p=($('finish').value||'07:00').split(':');
+    var finish=new Date(now);
+    finish.setHours(parseInt(p[0],10),parseInt(p[1],10),0,0);
+    if(finish<=now) finish.setDate(finish.getDate()+1);
+
+    var avail=(finish-now)/3600000, html='', endAt;
+
+    if(total>avail){
+      endAt=new Date(now.getTime()+total*3600000);
+      html+='<div class="warn">เวลาไม่พอถึง '+hhmm(finish)+' — เสียบชาร์จเลยตอนนี้</div>';
+      html+='<div class="big">'+hhmm(endAt)+'</div><div class="big-lbl">จะเสร็จเวลานี้แทน</div>';
+      html+='<div class="sub">ใช้เวลา <b>'+dur(total)+'</b></div>';
+    }else{
+      endAt=finish;
+      var start=new Date(finish.getTime()-total*3600000);
+      html+='<div class="big-lbl">ตั้งให้เริ่มชาร์จเวลา</div>';
+      html+='<div class="big">'+hhmm(start)+'</div>';
+      html+='<div class="sub">ใช้เวลา <b>'+dur(total)+'</b> · เสร็จ <b>'+hhmm(finish)+'</b></div>';
+      if(soak){
+        var full=new Date(finish.getTime()-soak*3600000);
+        html+='<div class="hint">แบตเต็ม 100% ราว '+hhmm(full)+' แล้วแช่ไฟต่ออีก '+soak+' ชม.</div>';
+      }
+      html+='<div class="hint">'+state.pct+'% → '+target+'% · เติม '+kwh.toFixed(1)+' kWh</div>';
+    }
+
+    var u=R.used, parts=[];
+    if(u.real) parts.push('วัดจริง '+u.real+' ช่วง');
+    if(u.est) parts.push('ประมาณ '+u.est+' ช่วง');
+    if(u.borrow) parts.push('ยืมค่า '+u.borrow+' ช่วง');
+    if(u['default']) parts.push('ค่าตั้งต้น '+u['default']+' ช่วง');
+    if(u.amp) parts.push('ประเมินตาม '+(state.amps==='max'?'MAX':state.amps+' A')+' ('+R.ampKw.toFixed(2)+' kW)');
+    html+='<div class="src">'+parts.join(' · ')+(u.real?'':'<br>ยังไม่มีค่าที่วัดจริง ตัวเลขอาจคลาดเคลื่อน')+'</div>';
+    html+='<button class="mark" id="mark">ตั้งเวลาแล้ว<small>จะถามผลจริงตอนเช้า</small></button>';
+    out.innerHTML=html;
+
+    lastCalc={ from:state.pct, target:target, chargeH:chg, finishAt:endAt.getTime(), kw:R.ampKw||state.defaultKw, amps:String(state.amps) };
+    $('mark').onclick=function(){
+      pend={ from:lastCalc.from, target:lastCalc.target, chargeH:lastCalc.chargeH, finishAt:lastCalc.finishAt, amps:String(state.amps), kw:lastCalc.kw };
+      save('pend',JSON.stringify(pend));
+      this.disabled=true;
+      this.innerHTML='✓ บันทึกแล้ว<small>เช้ามาเปิดแอพเพื่อกรอกผลจริง</small>';
+    };
+    out.scrollIntoView({block:'nearest',behavior:'smooth'});
+  };
+
+  /* ---------- settings ---------- */
+  $('s-default-kw').value=state.defaultKw.toFixed(1);
+  $('s-default-kw').onchange=function(){
+    var v=parseFloat(this.value);
+    if(!isFinite(v)) v=DEFKW;
+    v=Math.max(0.5,Math.min(7,v));
+    state.defaultKw=Math.round(v*10)/10;
+    this.value=state.defaultKw.toFixed(1);
+    save('defaultKw',state.defaultKw);
+    updateCurrentPreview(); renderAll(); clearOut();
+  };
+  $('s-max-amps').value=state.maxAmps;
+  $('s-max-amps').onchange=function(){
+    var v=parseInt(this.value,10); if(!isFinite(v)) v=32;
+    state.maxAmps=Math.max(6,Math.min(32,v)); this.value=state.maxAmps;
+    save('maxAmps',state.maxAmps); updateCurrentPreview(); clearOut();
+  };
+  function renderAmpOptions(){
+    var box=$('amp-options');
+    Array.prototype.forEach.call(box.querySelectorAll('input[type=checkbox]'),function(cb){ cb.checked=ampOptions.indexOf(cb.value)>=0; });
+    var previous=String(state.amps);
+    var settingSelect=$('s-current');
+    settingSelect.innerHTML='<option value="0">อัตโนมัติ — ใช้ประวัติ / ค่ามาตรฐาน</option>';
+    ampOptions.forEach(function(a){
+      var opt=document.createElement('option'); opt.value=a;
+      opt.textContent=a==='max'?'MAX — กำลังสูงสุดตามค่า kW ตั้งไว้':a==='32'?'32 A (จำลอง; จำกัดตาม kW สูงสุด)':a+' A';
+      settingSelect.appendChild(opt);
+    });
+    if(ampOptions.indexOf('max')<0){ampOptions.push('max');save('ampOptions',JSON.stringify(ampOptions));}
+    if(previous!=='max' && ampOptions.indexOf(previous)<0){state.amps='max';}
+    settingSelect.value=String(state.amps);
+    var mainBox=$('main-current-options');
+    mainBox.innerHTML='';
+    ampOptions.forEach(function(a){
+      var label=document.createElement('label'); label.className='charge-amp-option';
+      var input=document.createElement('input'); input.type='radio'; input.name='main-charge-amps'; input.value=a; input.checked=String(state.amps)===a; input.setAttribute('aria-label',a==='max'?'MAX':a+' แอมป์');
+      var span=document.createElement('span'); span.textContent=a==='max'?'MAX':a+'A';
+      input.addEventListener('change',function(){if(input.checked)setSelectedAmps(a);});
+      label.appendChild(input); label.appendChild(span); mainBox.appendChild(label);
+    });
+  }
+  $('amp-options').addEventListener('change',function(e){
+    if(!e.target || e.target.type!=='checkbox') return;
+    var a=e.target.value;
+    if(e.target.checked){if(ampOptions.indexOf(a)<0) ampOptions.push(a);}
+    else {ampOptions=ampOptions.filter(function(x){return x!==a;});}
+    if(!ampOptions.length){ampOptions=DEFAULT_AMP_OPTIONS.slice();}
+    save('ampOptions',JSON.stringify(ampOptions));
+    renderAmpOptions(); updateCurrentPreview(); clearOut();
+  });
+  function setSelectedAmps(v){
+    v=String(v);
+    if(v!=='0' && ampOptions.indexOf(v)<0) v='0';
+    state.amps=v;
+    $('s-current').value=v;
+    Array.prototype.forEach.call($('main-current-options').querySelectorAll('input[type=radio]'),function(input){input.checked=input.value===v;});
+    updateCurrentPreview(); clearOut();
+  }
+  $('s-current').onchange=function(){ setSelectedAmps(this.value); };
+  function updateCurrentPreview(){
+    var els=[$('current-preview')];
+    var msg;
+    if(state.amps!=='0' && state.amps!==0){
+      var kw=state.amps==='max'?state.defaultKw:state.defaultKw*Math.min(Number(state.amps),state.maxAmps)/state.maxAmps;
+      msg=(state.amps==='max'?'MAX':state.amps+' A')+' → ประเมิน '+kw.toFixed(2)+' kW · อ้างอิง '+state.maxAmps+' A = '+state.defaultKw.toFixed(1)+' kW';
+    }else{
+      msg='อัตโนมัติ: ใช้ประวัติจริง หรือค่ามาตรฐาน '+state.defaultKw.toFixed(1)+' kW';
+    }
+    els.forEach(function(el){if(el)el.textContent=msg;});
+    $('spec-default-kw').textContent=state.defaultKw.toFixed(1);
+  }
+  renderAmpOptions();
+  updateCurrentPreview();
+  $('s-max').onchange=function(){
+    var v=parseInt(this.value,10); if(isNaN(v)||v<50)v=50; if(v>100)v=100;
+    this.value=v; state.max=v; save('max',v); subLabels(); clearOut();
+  };
+  $('s-finish').onchange=function(){
+    state.defFinish=this.value||'07:00'; save('defFinish',state.defFinish);
+    $('finish').value=state.defFinish; clearOut();
+  };
+  function setSoak(h){
+    state.soak=h; save('soak',h);
+    $('soak-1').setAttribute('aria-pressed',h===1);
+    $('soak-2').setAttribute('aria-pressed',h===2);
+    subLabels(); clearOut();
+  }
+  $('soak-1').onclick=function(){ setSoak(1); };
+  $('soak-2').onclick=function(){ setSoak(2); };
+
+
+  /* ---------- backup / restore ---------- */
+  function backupObject(){
+    return {format:'atto3-charge-backup',version:9,exportedAt:new Date().toISOString(),settings:{
+      max:state.max,defFinish:state.defFinish,soak:state.soak,defaultKw:state.defaultKw,maxAmps:state.maxAmps,amps:String(state.amps),
+      ampOptions:ampOptions,fullInterval:fullInterval,lowInterval:lowInterval
+    },raw:raw,hist:hist,pend:pend};
+  }
+  $('export-data').onclick=function(){
+    var blob=new Blob([JSON.stringify(backupObject(),null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='atto3-charge-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    var f=$('backup-flash'); f.hidden=false; f.textContent='สร้างไฟล์สำรองแล้ว หากเบราว์เซอร์ไม่ดาวน์โหลดอัตโนมัติ ให้ตรวจสอบรายการดาวน์โหลด';
+  };
+  $('import-data').onclick=function(){ $('import-file').click(); };
+  $('import-file').onchange=function(){
+    var file=this.files && this.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(){
+      try{
+        var obj=JSON.parse(String(reader.result||''));
+        if(!obj || obj.format!=='atto3-charge-backup' || !Array.isArray(obj.raw) || !Array.isArray(obj.hist)) throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');
+        if(!confirm('นำเข้าข้อมูลจากไฟล์นี้และแทนที่ข้อมูลปัจจุบันในเครื่อง? แนะนำส่งออกไฟล์ปัจจุบันก่อน')) return;
+        raw=obj.raw.filter(function(r){return r && isFinite(Number(r.p)) && Number(r.p)>=0 && Number(r.p)<=100 && isFinite(Number(r.kw)) && Number(r.kw)>0;}).slice(-MAXRAW);
+        hist=obj.hist.filter(function(r){return r && isFinite(Number(r.from)) && isFinite(Number(r.got));}).slice(-MAXHIST);
+        var st=obj.settings||{};
+        state.max=Math.max(50,Math.min(100,parseInt(st.max,10)||90));
+        state.defFinish=/^\d{2}:\d{2}$/.test(st.defFinish||'')?st.defFinish:'07:00';
+        state.soak=Number(st.soak)===2?2:1;
+        state.defaultKw=Math.round(Math.max(.5,Math.min(7,Number(st.defaultKw)||DEFKW))*10)/10;
+        state.maxAmps=Math.max(6,Math.min(32,parseInt(st.maxAmps,10)||32));
+        ampOptions=Array.isArray(st.ampOptions)?st.ampOptions.map(String).filter(function(a,i,arr){return ALLOWED_AMP_OPTIONS.indexOf(a)>=0&&arr.indexOf(a)===i;}):DEFAULT_AMP_OPTIONS.slice();
+        if(!ampOptions.length) ampOptions=DEFAULT_AMP_OPTIONS.slice();
+        state.amps=(String(st.amps)==='max'||ALLOWED_AMP_OPTIONS.indexOf(String(st.amps))>=0)?String(st.amps):'0';
+        if(state.amps!=='0'&&ampOptions.indexOf(state.amps)<0) state.amps='0';
+        fullInterval=Math.max(1,Math.min(365,parseInt(st.fullInterval,10)||7));
+        lowInterval=Math.max(30,Math.min(365,parseInt(st.lowInterval,10)||180));
+        pend=obj.pend&&isFinite(Number(obj.pend.finishAt))?obj.pend:null;
+        save('raw',JSON.stringify(raw));save('log',JSON.stringify(hist));save('pend',JSON.stringify(pend));
+        save('max',state.max);save('defFinish',state.defFinish);save('soak',state.soak);save('defaultKw',state.defaultKw);save('maxAmps',state.maxAmps);
+        save('ampOptions',JSON.stringify(ampOptions));save('fullInterval',fullInterval);save('lowInterval',lowInterval);
+        $('s-max').value=state.max;$('s-finish').value=state.defFinish;$('finish').value=state.defFinish;
+        $('s-default-kw').value=state.defaultKw.toFixed(1);$('s-max-amps').value=state.maxAmps;$('s-full-interval').value=fullInterval;$('s-low-interval').value=lowInterval;
+        setSoak(state.soak);renderAmpOptions();updateCurrentPreview();renderAll();showAsk();clearOut();
+        var f=$('backup-flash');f.hidden=false;f.textContent='นำเข้าข้อมูลสำเร็จ: '+raw.length+' จุดวัด และ '+hist.length+' ประวัติ';
+      }catch(err){var f=$('backup-flash');f.hidden=false;f.textContent='นำเข้าไม่สำเร็จ: '+err.message;}
+      $('import-file').value='';
+    };
+    reader.readAsText(file);
+  };
+
+  /* ---------- init ---------- */
+  $('s-max').value=state.max;
+  $('s-full-interval').value=fullInterval;
+  $('s-low-interval').value=lowInterval;
+  $('s-full-interval').onchange=function(){
+    var v=parseInt(this.value,10);
+    if(isNaN(v)) v=7;
+    fullInterval=Math.max(1,Math.min(365,v));
+    this.value=fullInterval; save('fullInterval',fullInterval); renderServiceDetail();
+  };
+  $('s-low-interval').onchange=function(){
+    var v=parseInt(this.value,10);
+    if(isNaN(v)) v=180;
+    lowInterval=Math.max(30,Math.min(365,v));
+    this.value=lowInterval; save('lowInterval',lowInterval); renderServiceDetail();
+  };
+  $('s-finish').value=state.defFinish;
+  $('finish').value=state.defFinish;
+  setSoak(state.soak);
+  setPct(60); setMode('normal'); subLabels();
+  showAsk(); renderAll();
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) showAsk(); });
+})();
+</script>
+</body>
+</html>
